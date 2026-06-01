@@ -41,7 +41,7 @@ if (ta) startTAMatchBridge(ta);
 `taClientInitialize()`:
 1. Creates `TAClient` instance with auth token from `MAIN_AUTH_TOKEN` env var
 2. Connects to `TA_IP:TA_WS_PORT`
-3. For each TA tournament with a matching `ta_tournament_guid` in DB: joins it + sets score update frequency to 30 FPS
+3. For each TA tournament with a matching `ta_tournament_guid` in DB: joins it + sets score update frequency to 30ms
 4. Registers bridge maps (TA GUID → DB tournament ID, TA match GUID → DB match ID)
 5. Attaches `qualifierScoreSubmitted` handler
 

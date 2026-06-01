@@ -1,5 +1,6 @@
 services:
-  docs:
+  cdocs:
+    container_name: compsaberdocs
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,3 +8,10 @@ services:
     ports:
       - "3010:80"
     restart: unless-stopped
+    mem_limit: 1G
+    networks:
+      - proxymoxy
+    
+networks:
+  proxymoxy:
+    external: true
