@@ -6,7 +6,9 @@ sidebar_label: credits.html
 
 Tournament staff credits screen, grouped by role.
 
-Staff data is fetched from the public players API on first message. For private tournaments this fetch will fail - extend the bridge payload if needed.
+Staff data is fetched from the public players API on first message. For private tournaments this fetch will fail.
+If you want to use this screen for a private tournament, hardcode the staff data in the `render` function and skip the fetch.
+Otherwise, this will work as is for public tournaments.
 
 ```html
 <!DOCTYPE html>

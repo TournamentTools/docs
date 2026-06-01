@@ -6,9 +6,7 @@ sidebar_label: picks-bans.html
 
 Map pool grid showing all maps with difficulty color bars. Uses `activeMatch.mapPool` from the bridge payload.
 
-:::note
-Pick/ban state per map is not currently in the bridge payload directly. `mapPool` contains the maps, but pick/ban action data lives in the match state. This example renders maps with neutral styling. For full pick/ban state, cross-reference `allMatches` + `activeMatch` data, or extend the bridge payload.
-:::
+Each map includes `action`, `picker`, and `tiebreaker` fields, so the example can style picks, bans, and tiebreakers directly from the bridge payload. The ordered history is also available as `activeMatch.pickBans`.
 
 ```html
 <!DOCTYPE html>
@@ -48,6 +46,10 @@ Pick/ban state per map is not currently in the bridge payload directly. `mapPool
     .meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0; }
     .meta-right .key { font-size: 0.75rem; color: rgba(255,255,255,0.6); font-weight: 600; }
     .meta-right .bpm { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+    .status { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
+    .status.pick { color: #86efac; }
+    .status.ban { color: #fca5a5; }
+    .status.tiebreaker { color: #facc15; }
 
     .footer { height: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .footer-text { font-size: 3rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; }
@@ -94,15 +96,20 @@ Pick/ban state per map is not currently in the bridge payload directly. `mapPool
 
       var poolHtml = maps.map(function(map) {
         var color = diffColor(map.difficulty);
+        var stateClass = map.tiebreaker ? 'tiebreaker' : map.action === 'pick' ? 'picked' : map.action === 'ban' ? 'banned' : '';
+        var statusText = map.tiebreaker ? 'Tiebreaker' : map.action === 'pick' ? 'Pick' : map.action === 'ban' ? 'Ban' : '';
+        var statusClass = map.tiebreaker ? 'tiebreaker' : map.action || '';
         var coverHtml = map.coverURL
           ? '<img class="cover" src="' + map.coverURL + '" alt="">'
           : '<div class="cover-placeholder"></div>';
+        var statusHtml = statusText
+          ? '<div class="status ' + statusClass + '">' + statusText + '</div>' : '';
         var bpmHtml = showMapStats && map.bpm != null
           ? '<div class="bpm">BPM: <strong>' + Math.round(map.bpm) + '</strong></div>' : '';
         var keyHtml = showMapStats && map.beatSaverKey
           ? '<div class="key">' + map.beatSaverKey + '</div>' : '';
         return (
-          '<div class="map-card">' +
+          '<div class="map-card ' + stateClass + '">' +
           coverHtml +
           '<div class="diff-bar" style="background:' + color + '"></div>' +
           '<div class="meta">' +
@@ -110,7 +117,7 @@ Pick/ban state per map is not currently in the bridge payload directly. `mapPool
             '<div class="name">' + (map.songName || map.songHash) + '</div>' +
             '<div class="mapper">' + (map.levelAuthorName || '') + '</div>' +
           '</div>' +
-          '<div class="meta-right">' + keyHtml + bpmHtml + '</div>' +
+          '<div class="meta-right">' + statusHtml + keyHtml + bpmHtml + '</div>' +
           '</div>'
         );
       }).join('');

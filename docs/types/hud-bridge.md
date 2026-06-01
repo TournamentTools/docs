@@ -41,7 +41,7 @@ window.addEventListener('message', (e) => {
 
 ## BridgeMatchData
 
-`player1` / `player2` → [`BridgePlayer`](#bridgeplayer). `mapPool` → [`BridgeMap[]`](#bridgemap).
+`player1` / `player2` → [`BridgePlayer`](#bridgeplayer). `mapPool` → [`BridgeMap[]`](#bridgemap). `pickBans` → [`BridgePickBan[]`](#bridgepickban).
 
 ```ts
 interface BridgeMatchData {
@@ -52,6 +52,7 @@ interface BridgeMatchData {
   player2: BridgePlayer;     // → BridgePlayer below
   activePoolId: string | null;
   mapPool: BridgeMap[];      // → BridgeMap below
+  pickBans: BridgePickBan[]; // → BridgePickBan below
 }
 ```
 
@@ -96,6 +97,23 @@ interface BridgeMap {
   bpm: number | null;
   duration: number | null;
   beatSaverKey: string | null;
+  action: "pick" | "ban" | null;
+  picker: string | null;
+  tiebreaker: boolean;
+}
+```
+
+## BridgePickBan
+
+Ordered pick/ban history for the active match. `picker` is a player id, or `null` for an auto tiebreaker.
+
+```ts
+interface BridgePickBan {
+  mapId: string;
+  songHash: string;
+  action: "pick" | "ban";
+  picker: string | null;
+  tiebreaker: boolean;
 }
 ```
 

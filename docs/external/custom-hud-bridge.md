@@ -88,6 +88,7 @@ Basic tournament metadata. `null` only if the fetch failed.
   score: [number, number];   // [p1 wins, p2 wins]
   activePoolId: string | null;
   mapPool: BridgeMap[];
+  pickBans: BridgePickBan[];  // ordered pick/ban history
   player1: BridgePlayer;
   player2: BridgePlayer;
 }
@@ -107,6 +108,21 @@ Each `BridgeMap`:
   bpm: number | null;
   duration: number | null;        // seconds
   beatSaverKey: string | null;    // e.g. "1a2b3"
+  action: "pick" | "ban" | null;  // current action for this map
+  picker: string | null;          // player id, null for auto tiebreaker/no action
+  tiebreaker: boolean;
+}
+```
+
+Each `BridgePickBan` entry:
+
+```typescript
+{
+  mapId: string;
+  songHash: string;
+  action: "pick" | "ban";
+  picker: string | null;          // player id
+  tiebreaker: boolean;
 }
 ```
 
@@ -211,6 +227,7 @@ window.addEventListener('message', function(e) {
 | `tournament` | Once on load |
 | `activeMatch.score` | Every score change (live) |
 | `activeMatch.mapPool` | When active pool changes |
+| `activeMatch.pickBans` / `activeMatch.mapPool[].action` | Every pick/ban change |
 | `activeMatch` (players, round) | When active match switches |
 | `allMatches` scores/states | Every `match:updated` socket event |
 | `hudConfig` | When tournament theme is saved |
@@ -353,7 +370,7 @@ Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep`
 
 Full TypeScript type definitions for the bridge payload:
 
-- [HUD Bridge Types](../types/hud-bridge) - `OverlayBridgePayload`, `BridgeMatchData`, `BridgePlayer`, `BridgeMap`, `BridgeLiveScore`, `BridgeScheduleMatch`, `BridgeTournamentInfo`, `BridgeAudio`
+- [HUD Bridge Types](../types/hud-bridge) - `OverlayBridgePayload`, `BridgeMatchData`, `BridgePlayer`, `BridgeMap`, `BridgePickBan`, `BridgeLiveScore`, `BridgeScheduleMatch`, `BridgeTournamentInfo`, `BridgeAudio`
 - [HUD Config Types](../types/hud-config) - `HudThemeConfig` (the `hudConfig` field)
 - [Overlay Types](../types/overlay) - `OverlayState`, `OverlayScreenData`
 
