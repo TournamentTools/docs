@@ -13,8 +13,8 @@ const Categories: CategoryItem[] = [
     title: 'External',
     description: 'Guides for tournament participants and streamers.',
     links: [
-      {label: 'OBS Overlay Setup', to: '/docs/external/obs-overlay-setup'},
-      {label: 'Custom HUD Bridge', to: '/docs/external/custom-hud-bridge'},
+      {label: 'OBS Overlay Setup', to: '/docs/external/obs/'},
+      {label: 'Custom Overlay Bridge', to: '/docs/external/custom-overlay-bridge'},
       {label: 'Custom CSS Classes', to: '/docs/external/overlay-custom-classes'},
     ],
   },

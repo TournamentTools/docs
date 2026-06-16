@@ -1,14 +1,14 @@
 ---
-id: hud-bridge
-title: HUD Bridge Types
-sidebar_label: hud-bridge
+id: overlay-bridge
+title: Overlay Bridge Types
+sidebar_label: overlay-bridge
 ---
 
-Types for the `window.postMessage` payload that CompSaber sends into custom HUD iframes.
+Types for the `window.postMessage` payload that CompSaber sends into custom overlay iframes.
 
-The payload shape is `OverlayBridgePayload`. See [Custom HUD Bridge](../external/custom-hud-bridge) for usage.
+The payload shape is `OverlayBridgePayload`. See [Custom Overlay Bridge](../external/custom-overlay-bridge) for usage.
 
-Type cross-references: `hudConfig` → [`HudThemeConfig`](./hud-config); `activeMatch` → [`BridgeMatchData`](#bridgematchdata); `audio` → [`BridgeAudio`](#bridgeaudio); `allMatches` → [`BridgeScheduleMatch[]`](#bridgeschedulematch); `tournament` → [`BridgeTournamentInfo`](#bridgetournamentinfo).
+Type cross-references: `hudConfig` → [`HudThemeConfig`](./overlay-config); `activeMatch` → [`BridgeMatchData`](#bridgematchdata); `audio` → [`BridgeAudio`](#bridgeaudio); `allMatches` → [`BridgeScheduleMatch[]`](#bridgeschedulematch); `tournament` → [`BridgeTournamentInfo`](#bridgetournamentinfo).
 
 ## OverlayBridgePayload
 
@@ -167,6 +167,7 @@ interface CustomHud {
   id: string;
   tournamentId: string;
   label: string;
+  screen: string;
   sourceType: CustomHudSourceType;
   sourceUrl: string | null;
   s3Object: string | null;
@@ -179,7 +180,7 @@ interface CustomHud {
 
 ## Related
 
-- [Custom HUD Bridge](../external/custom-hud-bridge) - how to use this payload
-- [HUD Config Types](./hud-config) - `HudThemeConfig` shape
+- [Custom Overlay Bridge](../external/custom-overlay-bridge) - how to use this payload
+- [Overlay Config Types](./overlay-config) - `HudThemeConfig` shape
 - [Overlay Types](./overlay) - screen/state types for the overlay system
-- [BYOH Examples](../examples/BYOH/vs) - example HUDs consuming this payload
+- [BYOH Examples](../examples/BYOH/vs) - example overlays consuming this payload

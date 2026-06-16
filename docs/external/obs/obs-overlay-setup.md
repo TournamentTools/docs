@@ -2,6 +2,7 @@
 id: obs-overlay-setup
 title: OBS Overlay Setup
 sidebar_label: OBS Overlay Setup
+sidebar_position: 1
 ---
 
 ## Quick Links
@@ -25,7 +26,7 @@ Everything you need is in the **right** sidebar.
 
 You have two options:
 - Set up sources yourself
-- Use the provided OBS scene-collection (1440p or 1080p)
+- Use the provided OBS scene-collection ([1080p](./overlay-1080p) or [1440p](./overlay-1440p))
 
 Self-setup assumes technical knowledge. Help is always available in `#streaming-support` on the CompSaber Discord.
 

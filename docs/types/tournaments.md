@@ -38,6 +38,7 @@ interface Tournament {
   qualifiers: boolean;
   quals_cutoff: number;
   participant_count?: number;
+  dummy_tournament?: boolean;
 }
 
 type TournamentBracketType = "single_elimination" | "double_elimination";

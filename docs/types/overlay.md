@@ -37,6 +37,8 @@ type OverlayScreenData =
   | { screen: "picks_bans" }
   | { screen: "map_overview"; songHash: string; difficulty?: string; characteristic?: string }
   | { screen: "play" }
+  | { screen: "results" }
+  | { screen: "credits" }
   | { screen: "bracket"; bracketView?: "upper" | "lower" };
 ```
 
@@ -78,6 +80,6 @@ type OverlayAudioCommand = {
 ## Related
 
 - [Socket Rooms](/docs/internal/socket-rooms) - `overlayState` event carries `OverlayState`; `overlaySetAudio` carries `OverlayAudioCommand`; `overlayScreenChanged` carries `OverlayScreenData`
-- [HUD Bridge Types](/docs/types/hud-bridge) - `OverlayBridgePayload` delivered to custom HUDs (uses `OverlayState` data)
+- [Overlay Bridge Types](/docs/types/overlay-bridge) - `OverlayBridgePayload` delivered to custom overlays (uses `OverlayState` data)
 - [Overlay Player Types](/docs/types/overlay/player) - `OverlayPlayer` shape used inside overlay screens
 - [Match Types](/docs/types/matches) - `Match` is what `activeMatchId` resolves to

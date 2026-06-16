@@ -160,7 +160,7 @@ type LiveScoreEntry = {
 
 ## Related
 
-- [HUD Bridge Types](./hud-bridge) - `BridgeMatchData`, `BridgeLiveScore` (bridge-side equivalents of `MatchDeepData`, `LiveScoreEntry`)
+- [Overlay Bridge Types](./overlay-bridge) - `BridgeMatchData`, `BridgeLiveScore` (bridge-side equivalents of `MatchDeepData`, `LiveScoreEntry`)
 - [TA Types](./ta) - `LiveScore` (extended real-time score; `LiveScoreEntry` is the lighter match-display version)
 - [Tournament Types](./tournaments) - `MapPoolSong` / `SongData` (pool-side map shape vs `MatchMapData`)
 - [Socket Rooms](../internal/socket-rooms) - `SocketEvents.matchUpdated` carries `Match`; `SocketEvents.taRealtimeScore` carries live scores

@@ -1,10 +1,10 @@
 ---
-id: hud-config
-title: HUD Config Types
-sidebar_label: hud-config
+id: overlay-config
+title: Overlay Config Types
+sidebar_label: overlay-config
 ---
 
-Types for the HUD theme configuration passed to overlays via `hudConfig` in the [bridge payload](./hud-bridge).
+Types for the overlay theme configuration passed to overlays via `hudConfig` in the [bridge payload](./overlay-bridge).
 
 ## HudThemeConfig
 
@@ -63,6 +63,6 @@ type ScoreStyle   = "indicators" | "numbers";
 
 ## Related
 
-- [HUD Bridge Types](./hud-bridge) - payload that carries `hudConfig`
-- [Custom HUD Bridge](../external/custom-hud-bridge) - how to use `hudConfig` in your overlay
+- [Overlay Bridge Types](./overlay-bridge) - payload that carries `hudConfig`
+- [Custom Overlay Bridge](../external/custom-overlay-bridge) - how to use `hudConfig` in your overlay
 - [Custom CSS Classes](../external/overlay-custom-classes) - CSS classes affected by `cornerRadius` / `scoreStyle`

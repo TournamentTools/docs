@@ -98,7 +98,7 @@ See [`PlayerRanking`](../types/qual-score#playerranking) in Qualifier Score Type
       score: number;             // raw
       equalizedScore: number;
       accuracy: number;          // raw acc %
-      equalizedAcc: number;      // equalized acc %
+      equalizedAcc: number;      // s / H * 100 (multiplier cancels - see Step 3)
     }>;
   }
 ]

@@ -100,12 +100,14 @@ Full type → [`OverlayState`](../types/overlay#overlaystate). `screen` → [`Ov
 
 ```ts
 { screen: "idle" }
-{ screen: "countdown" }
-{ screen: "intermission" }
+{ screen: "countdown"; targetTimestamp: number; label?: string }
+{ screen: "intermission"; matches: IntermissionMatch[] }
 { screen: "vs" }
 { screen: "picks_bans" }
 { screen: "play" }
-{ screen: "bracket" }
+{ screen: "results" }
+{ screen: "credits" }
+{ screen: "bracket"; bracketView?: "upper" | "lower" }
 { screen: "map_overview"; songHash: string; difficulty?: string; characteristic?: string }
 ```
 
@@ -143,5 +145,5 @@ Full type → [`OverlayState`](../types/overlay#overlaystate). `screen` → [`Ov
 
 - [Socket Rooms](./socket-rooms) - underlying room join/event constants
 - [Overlay Types](../types/overlay) - `OverlayState`, `OverlayScreenData`, `OverlayAudioCommand`
-- [HUD Bridge Types](../types/hud-bridge) - `OverlayBridgePayload` sent to custom HUDs
+- [Overlay Bridge Types](../types/overlay-bridge) - `OverlayBridgePayload` sent to custom overlays
 - [Authentication](./auth) - API key auth used in control mode

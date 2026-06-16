@@ -21,6 +21,6 @@ type OverlayPlayer = {
 
 ## Related
 
-- [HUD Bridge Types](../hud-bridge) - `BridgePlayer` is the bridge-side equivalent
+- [Overlay Bridge Types](../overlay-bridge) - `BridgePlayer` is the bridge-side equivalent
 - [Overlay Types](../overlay) - screen types that reference players
 - [Player Data Types](../player-data) - raw ranking data from external APIs

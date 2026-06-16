@@ -38,4 +38,4 @@ Delivered via the `ta:realtimeScore` socket event. See [Socket Rooms](../interna
 
 - [Socket Rooms](../internal/socket-rooms) - `SocketEvents.taRealtimeScore`
 - [Match Types](./matches) - `LiveScoreEntry` (lighter shape used in match display)
-- [HUD Bridge Types](./hud-bridge) - `BridgeLiveScore` (bridge-side live score)
+- [Overlay Bridge Types](./overlay-bridge) - `BridgeLiveScore` (bridge-side live score)

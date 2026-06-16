@@ -1,20 +1,20 @@
 ---
-id: custom-hud-bridge
-title: Custom HUD Bridge API
-sidebar_label: Custom HUD Bridge
+id: custom-overlay-bridge
+title: Custom Overlay Bridge API
+sidebar_label: Custom Overlay Bridge
 ---
 
-Custom HUDs are self-contained HTML files that receive live match data from CompSaber via `window.postMessage`. Load them through the Custom HUD screen routes (e.g. `/overlay/{id}/custom/vs`), which stream data into your page as an iframe.
+Custom Overlays are self-contained HTML files that receive live match data from CompSaber via `window.postMessage`. You load them through the Custom Overlay screen routes (e.g. `/overlay/{id}/custom/vs`), which stream data into your page as an iframe.
 
 ## How it works
 
-1. Create a Custom HUD in your tournament's **Custom HUD** tab (inline editor, file upload, or external URL)
-2. Activate it
-3. The overlay dashboard toggle switches your overlay links to `/custom/[screen]` URLs
-4. OBS loads those URLs as Browser Sources instead of the built-in ones
-5. CompSaber streams live data into your page via `window.postMessage` on every state change
+1. You create a Custom Overlay in your tournament's **Custom Overlay** tab (inline editor, file upload, or external URL).
+2. You activate it.
+3. The overlay dashboard toggle switches your overlay links to `/custom/[screen]` URLs.
+4. OBS loads those URLs as Browser Sources instead of the built-in ones.
+5. CompSaber streams live data into your page via `window.postMessage` every time match state changes.
 
-Your HTML runs in a sandboxed iframe - no access to cookies, localStorage, or the parent page. All data is delivered via postMessage.
+Your HTML runs in a sandboxed iframe - it has no access to cookies, localStorage, or the parent page. All data you need is delivered via postMessage.
 
 ## Listening for data
 
@@ -34,7 +34,7 @@ window.addEventListener('message', function(e) {
 });
 ```
 
-Messages fire on every state change. Write your handler to be idempotent.
+Messages are sent on every state change (match switch, score update, audio change, pool change, etc.). Your handler will be called multiple times - write it to be idempotent.
 
 ## Payload reference
 
@@ -79,7 +79,7 @@ Basic tournament metadata. `null` only if the fetch failed.
 
 ### activeMatch
 
-`null` when no match is active.
+`null` when no match is active. Otherwise the full current match:
 
 ```typescript
 {
@@ -87,7 +87,7 @@ Basic tournament metadata. `null` only if the fetch failed.
   matchRound: string;        // e.g. "Grand Finals"
   score: [number, number];   // [p1 wins, p2 wins]
   activePoolId: string | null;
-  mapPool: BridgeMap[];
+  mapPool: BridgeMap[];      // current active map pool
   pickBans: BridgePickBan[];  // ordered pick/ban history
   player1: BridgePlayer;
   player2: BridgePlayer;
@@ -147,7 +147,7 @@ Each `BridgePlayer`:
 
 ### allMatches
 
-Full match schedule, live-patched as scores/states change.
+Full match schedule for the tournament, live-patched as scores/states change. Same data the intermission screen uses.
 
 ```typescript
 Array<{
@@ -156,7 +156,7 @@ Array<{
   roundName: string;
   state: string;                  // "upcoming" | "live" | "completed"
   startTime: string | null;       // ISO 8601
-  score: [number, number];
+  score: [number, number];        // [p1 wins, p2 wins]
   winnerId: string | null;
   player1: {
     id: string;
@@ -164,13 +164,13 @@ Array<{
     avatarURL: string | null;
     country: string | null;
   } | null;
-  player2: { /* same shape as player1 */ } | null;
+  player2: { ... } | null;        // same shape as player1
 }>
 ```
 
 ### hudConfig
 
-Tournament theme settings. Use these to respect the tournament's branding.
+Tournament theme settings configured in the "Overlay" tab. Use these to respect the tournament's branding.
 
 ```typescript
 {
@@ -193,19 +193,19 @@ Tournament theme settings. Use these to respect the tournament's branding.
 
 ### audio
 
-Current stream audio state as set by the caster. Useful for volume indicators or mute state.
+Current stream audio state as set by the caster via the overlay dashboard. Useful if your overlay renders volume indicators or reacts to mute state.
 
 ### bracketView
 
-Non-null only when the caster has activated bracket view. `"upper"` = winners bracket, `"lower"` = losers bracket.
+Non-null only when the caster has activated bracket view. `"upper"` = winners bracket, `"lower"` = losers bracket. Use this on `/custom/bracket` to know which half to render.
 
 ### countdownTarget
 
-Non-null when a countdown is active. Unix ms timestamp. Use `countdownTarget - Date.now()` for remaining ms.
+Non-null only when a countdown is active. Unix ms timestamp of when the countdown ends. Use `countdownTarget - Date.now()` to get remaining ms.
 
 ### streamReload
 
-Two-element array `[p0, p1]` of incrementing counters. When the caster clicks **Reload Stream**, the relevant counter increments.
+Two-element array of incrementing counters - one per player (`[p0, p1]`). When the caster clicks "Reload Stream" in the overlay dashboard, the relevant counter increments. Compare to your previous value to know which stream to reconnect.
 
 ```javascript
 var prevReload = [0, 0];
@@ -229,14 +229,16 @@ window.addEventListener('message', function(e) {
 | `activeMatch.mapPool` | When active pool changes |
 | `activeMatch.pickBans` / `activeMatch.mapPool[].action` | Every pick/ban change |
 | `activeMatch` (players, round) | When active match switches |
-| `allMatches` scores/states | Every `match:updated` socket event |
+| `allMatches` scores/states | Every `match:updated` socket event (live) |
 | `hudConfig` | When tournament theme is saved |
 | `audio` | When caster changes volume/mute |
 | `bracketView` | When caster switches bracket view |
 | `countdownTarget` | When caster starts/changes countdown |
-| `streamReload` | When caster clicks reload stream |
+| `streamReload` | When caster clicks reload stream in dashboard |
 
 ## Starter template
+
+This is the default template inserted when you create a new inline overlay:
 
 ```html
 <!DOCTYPE html>
@@ -279,29 +281,34 @@ window.addEventListener('message', function(e) {
 
 ## Hosting externally
 
-External URL HUDs work identically to inline/uploaded ones. No sockets or special server required - just a `window.addEventListener('message', ...)` listener on an HTTPS page.
+External URL overlays work identically to inline/uploaded ones. CompSaber loads your URL in the same sandboxed iframe and calls `iframe.contentWindow.postMessage(payload, "*")` on every state change. No sockets, no special server setup - your page just needs the `window.addEventListener('message', ...)` listener.
 
-**Setup:**
-1. Host your HTML file (GitHub Pages, Netlify, Vercel, etc.)
-2. In the **Custom HUD** tab, create a new HUD → pick **External URL**
-3. Paste your HTTPS URL → **Create** → **Activate**
-4. In the overlay dashboard, toggle to **Custom HUD** mode
-5. Point OBS Browser Sources at the resulting `/custom/vs`, `/custom/play`, etc. URLs
+**Setup steps:**
 
-**Notes:**
-- No CORS headers needed - postMessage works cross-origin by design
-- All data delivered via postMessage - no fetching required, works for private tournaments
-- Use one HTML file for all screens (check `bracketView`/`countdownTarget`) or separate files per screen (only one HUD active at a time)
+1. Host your HTML file somewhere with an HTTPS URL (GitHub Pages, Netlify, Vercel, your own server, etc.)
+2. In the **Custom Overlay** tab, create a new Overlay and pick **External URL**
+3. Paste your HTTPS URL and hit **Create**
+4. Click **Activate**
+5. In the overlay dashboard, toggle to **Custom Overlay** mode - your per-screen links will now point to `/custom/vs`, `/custom/play`, etc.
+6. Point OBS Browser Sources at those URLs
+
+**CORS:** Your page does not need CORS headers. postMessage works cross-origin by design.
+
+**Private tournaments:** All data (including match schedule, player info, map pool) is delivered via postMessage. Your overlay does not need to fetch anything - data works regardless of whether the tournament is public or private.
+
+**Multiple screens:** You can use one HTML file for all screens (check `bracketView`/`countdownTarget` to adapt), or host separate files per screen and register them as separate Overlays (only one can be active at a time).
 
 ## Player streams
 
-Custom HUDs can embed live player POV streams via WebRTC (MediaMTX / WHEP).
+Custom Overlays can embed live player POV streams using the same WebRTC infrastructure as the built-in overlay.
+
+CompSaber uses [MediaMTX](https://github.com/bluenviron/mediamtx) with WHEP. The reader library is hosted at:
 
 ```
 https://compsaber.com/reader.js
 ```
 
-Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep`
+Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep` where `WEBRTC_BASE` is the WebRTC server base URL for the tournament (e.g. `https://webrtc.csaber.ovh`). Player IDs are available in `payload.activeMatch.player1.id` and `payload.activeMatch.player2.id`.
 
 ```html
 <!DOCTYPE html>
@@ -344,9 +351,11 @@ Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep`
       var p1El = document.getElementById('p1');
       var p2El = document.getElementById('p2');
 
+      // Apply volume/mute from dashboard controls
       if (p1El) { p1El.muted = payload.audio.player0Muted; p1El.volume = payload.audio.player0Volume; }
       if (p2El) { p2El.muted = payload.audio.player1Muted; p2El.volume = payload.audio.player1Volume; }
 
+      // Start streams on new match or on reload
       var reload = payload.streamReload || [0, 0];
       var matchChanged = !prevMatch || prevMatch.matchId !== match.matchId;
       if (matchChanged || reload[0] !== prevReload[0]) startStream(match.player1.id, p1El);
@@ -361,29 +370,73 @@ Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep`
 ```
 
 **Notes:**
-- Load `reader.js` via its absolute URL - relative paths blocked in the sandbox
+- Load `reader.js` via its absolute URL - relative paths are blocked in the sandbox
+- WHEP URL = stream base URL + `/whep` (no trailing slash on player ID segment)
 - Re-initialize readers when `activeMatch` changes (player IDs change between matches)
-- `muted` required on `<video>` for autoplay in most browsers
-- Watch `payload.streamReload[i]` to reconnect streams when the caster clicks reload
+- `muted` required on `<video>` for autoplay to work in most browsers
+- Apply `payload.audio.player0Volume` / `player0Muted` to `<video>` elements to respect dashboard audio controls
+- Watch `payload.streamReload[i]` increments to reconnect streams when the caster clicks reload in the dashboard
+
+## Results & Credits screens
+
+The `results` and `credits` screens are the exception to "you don't need to fetch anything": their data is **not** in the postMessage payload. The bridge still fires `COMPSABER_STATE` (so you get `payload.tournamentId`), but you fetch the screen's data yourself from a tournament endpoint, keyed by that id.
+
+**Results** (`/custom/results`) - final standings / podium. Fetch:
+
+```javascript
+window.addEventListener('message', function(e) {
+  if (e.data?.type !== 'COMPSABER_STATE') return;
+  fetch('/api/tournaments/' + e.data.payload.tournamentId + '/results')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) { if (data) render(data); });
+});
+```
+
+Response shape:
+
+```typescript
+{
+  standings: Player[];   // every player, ranked
+  top_3: Player[];       // podium - standings.slice(0, 3)
+}
+
+type Player = {
+  rank: number;
+  userId: string;
+  username: string | null;
+  avatarUrl: string | null;
+  country: string | null;        // ISO code, e.g. "US" - null if no linked profile
+  wins: number;                  // completed matches won
+  bracket: "upper" | "lower" | null;
+  matchNumber: number | null;    // earliest match (seed proxy)
+  isWinner: boolean;             // Grand Finals winner, pinned to rank 1
+};
+```
+
+Standings are pre-sorted: Grand Finals winner first, then by wins desc, bracket (upper before lower), then seed. For a podium use `top_3`; `top_3[i].rank` gives the place (1/2/3).
+
+**Credits** (`/custom/credits`) - tournament staff. Fetch `GET /api/tournaments/{id}/players` and filter `role !== "player"`.
+
+Both endpoints are same-origin GETs - no Bearer key needed from inside the overlay iframe; the built-in templates (Results / Credits in the overlay editor) use exactly this pattern, so clone one as a starting point.
 
 ## Type Reference
 
 Full TypeScript type definitions for the bridge payload:
 
-- [HUD Bridge Types](../types/hud-bridge) - `OverlayBridgePayload`, `BridgeMatchData`, `BridgePlayer`, `BridgeMap`, `BridgePickBan`, `BridgeLiveScore`, `BridgeScheduleMatch`, `BridgeTournamentInfo`, `BridgeAudio`
-- [HUD Config Types](../types/hud-config) - `HudThemeConfig` (the `hudConfig` field)
+- [Overlay Bridge Types](../types/overlay-bridge) - `OverlayBridgePayload`, `BridgeMatchData`, `BridgePlayer`, `BridgeMap`, `BridgePickBan`, `BridgeLiveScore`, `BridgeScheduleMatch`, `BridgeTournamentInfo`, `BridgeAudio`
+- [Overlay Config Types](../types/overlay-config) - `HudThemeConfig` (the `hudConfig` field)
 - [Overlay Types](../types/overlay) - `OverlayState`, `OverlayScreenData`
 
 ## Constraints
 
-Your HUD runs in `sandbox="allow-scripts allow-popups"`. This means:
+Your overlay runs in a sandboxed iframe (`sandbox="allow-scripts allow-popups"`). This means:
 
-| Restriction | Details |
-|---|---|
-| No cookies | `document.cookie` inaccessible |
-| No localStorage/sessionStorage | State must come from postMessage only |
-| No credentialed fetch | No requests with auth headers or cookies |
-| No parent DOM access | No `window.parent` or `window.top` |
-| No relative paths | All external resources must use absolute HTTPS URLs |
+- **No cookies** - cannot read `document.cookie`
+- **No localStorage / sessionStorage** - state must come from postMessage only
+- **No credentialed fetch** - cannot make requests that carry auth headers or cookies
+- **No parent DOM access** - cannot access `window.parent` or `window.top`
+- **No relative paths** - all external resources (fonts, images, scripts) must use absolute HTTPS URLs
 
-**Size limits:** Inline HUDs ≤ 200KB · Uploaded HTML ≤ 2MB · External URLs must use HTTPS
+These restrictions exist to protect tournament organizers from malicious overlays.
+
+Inline overlays are limited to **200KB**. Uploaded HTML files are limited to **2MB**. External URLs must use **HTTPS**.

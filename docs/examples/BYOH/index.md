@@ -17,4 +17,5 @@ sidebar_position: 1
 - [Intermission](./intermission) - intermission screen example.
 - [Picks/Bans](./picks-bans) - picks and bans screen example.
 - [Play](./play) - live gameplay screen example.
+- [Results](./results) - top-3 podium / final standings example.
 - [VS](./vs) - versus screen example.

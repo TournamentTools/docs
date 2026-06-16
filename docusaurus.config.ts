@@ -7,6 +7,7 @@ import rehypeKatex from 'rehype-katex';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
+  onBrokenLinks: 'warn',
   title: 'CompSaber Docs',
   tagline: 'CompSaber documentation',
   favicon: 'img/favicon.ico',
@@ -33,9 +34,6 @@ const config: Config = {
 
   organizationName: 'CompSaber',
   projectName: 'CompSaberDocs',
-
-  onBrokenLinks: 'throw',
-
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".

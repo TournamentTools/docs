@@ -11,7 +11,7 @@ Full bracket data is not in the bridge payload. This example fetches it from the
 ```
 /api/tournaments/{tournamentId}/bracket
 ```
-For private tournaments, this fetch will fail - you'd need to add bracket data to the bridge payload.
+For privated tournaments, this fetch will fail.
 :::
 
 ```html

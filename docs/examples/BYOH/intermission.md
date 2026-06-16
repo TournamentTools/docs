@@ -8,6 +8,13 @@ Match schedule screen grouped by status (Live/Today, Later, Unplanned, Ended).
 
 Uses `allMatches` from the bridge payload - live-patched on every `match:updated` event.
 
+:::warning
+This screen **will** need to be adjusted, to ensure it fits the screen.
+Match-schedule centers and clips bottom of screen.
+
+CompSaber is not responsible for this example's layout - it's meant to be a starting point for your own custom schedule screen, if you want to build one.
+:::
+
 ```html
 <!DOCTYPE html>
 <html>
