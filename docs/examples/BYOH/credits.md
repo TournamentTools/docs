@@ -6,9 +6,7 @@ sidebar_label: credits.html
 
 Tournament staff credits screen, grouped by role.
 
-Staff data is fetched from the public players API on first message. For private tournaments this fetch will fail.
-If you want to use this screen for a private tournament, hardcode the staff data in the `render` function and skip the fetch.
-Otherwise, this will work as is for public tournaments.
+Staff comes from the bridge payload as `payload.staff` (same shape as the players API), so no fetch is needed and it works for private tournaments.
 
 ```html
 <!DOCTYPE html>
@@ -23,12 +21,13 @@ Otherwise, this will work as is for public tournaments.
 
     .role-group { display: flex; flex-direction: column; gap: 0.6rem; }
     .role-header { display: flex; align-items: center; gap: 0.75rem; }
-    .role-accent { width: 4px; height: 20px; background: rgba(255,255,255,0.4); border-radius: 2px; flex-shrink: 0; }
-    .role-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); }
+    /* --role-color is set per group from ROLE_COLORS, matching the inbuilt overlay. */
+    .role-accent { width: 4px; height: 20px; background: var(--role-color, rgba(255,255,255,0.4)); border-radius: 2px; flex-shrink: 0; }
+    .role-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--role-color, rgba(255,255,255,0.5)); }
     .role-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
 
     .members { display: flex; flex-wrap: wrap; gap: 0.6rem; padding-left: 1rem; }
-    .member { display: flex; align-items: center; gap: 0.6rem; background: rgba(19,19,19,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.4rem 0.75rem; backdrop-filter: blur(4px); }
+    .member { display: flex; align-items: center; gap: 0.6rem; background: var(--role-bg, rgba(19,19,19,0.5)); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.4rem 0.75rem; backdrop-filter: blur(4px); }
     .member img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
     .member .name { font-size: 0.9rem; font-weight: 600; }
     .member .flag { width: 16px; height: 16px; object-fit: contain; }
@@ -45,8 +44,17 @@ Otherwise, this will work as is for public tournaments.
       host: 'Organizer', tournament_admin: 'Admin', developer: 'Developer',
       coordinator: 'Coordinator', map_pooler: 'Map Pooler', caster: 'Caster',
     };
-
-    var fetched = false;
+    // Per-role colors, matching getTournamentRoleInfo in the inbuilt overlay.
+    // [accent/label color, chip background tint].
+    var ROLE_COLORS = {
+      host:             ['#a855f7', 'rgba(168,85,247,0.25)'],  // purple-500
+      tournament_admin: ['#3b82f6', 'rgba(59,130,246,0.25)'],  // blue-500
+      developer:        ['#22c55e', 'rgba(16,185,129,0.25)'],  // green-500 / emerald-500 bg
+      coordinator:      ['#818cf8', 'rgba(129,140,248,0.1)'],  // indigo-400
+      map_pooler:       ['#eab308', 'rgba(234,179,8,0.25)'],   // yellow-500
+      caster:           ['#ef4444', 'rgba(239,68,68,0.25)'],   // red-500
+    };
+    var ROLE_DEFAULT = ['#6b7280', 'rgba(107,114,128,0.25)'];  // gray-500
 
     function render(staff) {
       var root = document.getElementById('root');
@@ -60,7 +68,9 @@ Otherwise, this will work as is for public tournaments.
         var members = nonPlayers.filter(function(m) { return m.role === role; });
         if (members.length === 0) return;
         var label = ROLE_LABELS[role] + (members.length > 1 ? 's' : '');
-        html += '<div class="role-group"><div class="role-header"><div class="role-accent"></div><span class="role-label">' + label + '</span><div class="role-line"></div></div>';
+        var colors = ROLE_COLORS[role] || ROLE_DEFAULT;
+        var styleVars = '--role-color:' + colors[0] + ';--role-bg:' + colors[1] + ';';
+        html += '<div class="role-group" style="' + styleVars + '"><div class="role-header"><div class="role-accent"></div><span class="role-label">' + label + '</span><div class="role-line"></div></div>';
         html += '<div class="members">';
         members.forEach(function(m) {
           var username = m.user?.username || m.username || '?';
@@ -78,21 +88,10 @@ Otherwise, this will work as is for public tournaments.
       root.innerHTML = html;
     }
 
-    function fetchStaff(tournamentId) {
-      fetch('/api/tournaments/' + tournamentId + '/players')
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) { if (data) render(data); })
-        .catch(function() {
-          document.getElementById('root').innerHTML = '<div class="waiting">Could not load staff</div>';
-        });
-    }
-
+    // Staff arrives in the bridge payload (payload.staff) - no fetch needed.
     window.addEventListener('message', function(e) {
       if (e.data?.type !== 'COMPSABER_STATE') return;
-      if (!fetched) {
-        fetched = true;
-        fetchStaff(e.data.payload.tournamentId);
-      }
+      render(e.data.payload.staff);
     });
   </script>
 </body>

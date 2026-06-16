@@ -31,6 +31,9 @@ window.addEventListener('message', function(e) {
   // payload.bracketView     - "upper" | "lower" | null
   // payload.countdownTarget - unix ms timestamp | null
   // payload.streamReload    - [number, number] - increment = reconnect that player's stream
+  // payload.bracket         - full bracket (upper/lower rounds) | null
+  // payload.results         - standings + top_3 podium | null
+  // payload.staff           - tournament staff/credits list | null
 });
 ```
 
@@ -59,6 +62,9 @@ Full payload shape (TypeScript):
     bracketView: "upper" | "lower" | null;
     countdownTarget: number | null;  // Date.now()-style ms timestamp
     streamReload: [number, number];  // increment counters - watch for changes to trigger reader reconnect
+    bracket: FullBracket | null;     // bracket screen data
+    results: { standings: ResultsPlayer[]; top_3: ResultsPlayer[] } | null;
+    staff: StaffMember[] | null;     // credits screen data
   };
 }
 ```
@@ -220,6 +226,63 @@ window.addEventListener('message', function(e) {
 });
 ```
 
+### bracket
+
+Full bracket for the `bracket` screen, or `null` until loaded. Pair with [`bracketView`](#bracketview) to decide which half to show. Re-sent live as matches complete.
+
+```typescript
+{
+  upperBracket: BracketRound[];
+  lowerBracket: BracketRound[];   // empty for single-elimination
+}
+// each round: { name: string, matches: { player1, player2, winnerId, ... }[] }
+```
+
+```javascript
+var view = payload.bracketView || 'upper';
+var rounds = view === 'lower' ? payload.bracket.lowerBracket : payload.bracket.upperBracket;
+```
+
+### results
+
+Standings for the `results` screen, or `null` until loaded. `standings` is every player ranked; `top_3` is the podium (`standings.slice(0, 3)`). The Grand Finals winner is pinned to rank 1.
+
+```typescript
+{
+  standings: ResultsPlayer[];
+  top_3: ResultsPlayer[];
+}
+
+type ResultsPlayer = {
+  rank: number;
+  userId: string;
+  username: string | null;
+  avatarUrl: string | null;
+  country: string | null;        // ISO code, e.g. "US"
+  wins: number;
+  bracket: "upper" | "lower" | null;
+  matchNumber: number | null;
+  isWinner: boolean;             // Grand Finals winner
+};
+```
+
+### staff
+
+Tournament staff for the `credits` screen, or `null` until loaded. Same shape as the players API. Filter `role !== "player"` for the credits roll.
+
+```typescript
+type StaffMember = {
+  user_id: string;
+  role: string;                  // "host" | "tournament_admin" | "caster" | ... | "player"
+  username: string | null;
+  user: {
+    username: string | null;
+    avatar_url: string | null;
+    scoresaber_data: { country?: string | null } | null;
+  } | null;
+};
+```
+
 ## Update frequency
 
 | Data | When it updates |
@@ -294,7 +357,7 @@ External URL overlays work identically to inline/uploaded ones. CompSaber loads 
 
 **CORS:** Your page does not need CORS headers. postMessage works cross-origin by design.
 
-**Private tournaments:** All data (including match schedule, player info, map pool) is delivered via postMessage. Your overlay does not need to fetch anything - data works regardless of whether the tournament is public or private.
+**Private tournaments:** All data (match schedule, player info, map pool, bracket, standings, staff) is delivered via postMessage. Your overlay does not need to fetch anything - data works regardless of whether the tournament is public or private. (The sandboxed iframe has a `null` origin, so any `fetch` it makes is cross-origin and CORS-blocked - read everything from the payload.)
 
 **Multiple screens:** You can use one HTML file for all screens (check `bracketView`/`countdownTarget` to adapt), or host separate files per screen and register them as separate Overlays (only one can be active at a time).
 
@@ -376,48 +439,6 @@ Stream URL pattern: `{WEBRTC_BASE}/{playerId}/whep` where `WEBRTC_BASE` is the W
 - `muted` required on `<video>` for autoplay to work in most browsers
 - Apply `payload.audio.player0Volume` / `player0Muted` to `<video>` elements to respect dashboard audio controls
 - Watch `payload.streamReload[i]` increments to reconnect streams when the caster clicks reload in the dashboard
-
-## Results & Credits screens
-
-The `results` and `credits` screens are the exception to "you don't need to fetch anything": their data is **not** in the postMessage payload. The bridge still fires `COMPSABER_STATE` (so you get `payload.tournamentId`), but you fetch the screen's data yourself from a tournament endpoint, keyed by that id.
-
-**Results** (`/custom/results`) - final standings / podium. Fetch:
-
-```javascript
-window.addEventListener('message', function(e) {
-  if (e.data?.type !== 'COMPSABER_STATE') return;
-  fetch('/api/tournaments/' + e.data.payload.tournamentId + '/results')
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(data) { if (data) render(data); });
-});
-```
-
-Response shape:
-
-```typescript
-{
-  standings: Player[];   // every player, ranked
-  top_3: Player[];       // podium - standings.slice(0, 3)
-}
-
-type Player = {
-  rank: number;
-  userId: string;
-  username: string | null;
-  avatarUrl: string | null;
-  country: string | null;        // ISO code, e.g. "US" - null if no linked profile
-  wins: number;                  // completed matches won
-  bracket: "upper" | "lower" | null;
-  matchNumber: number | null;    // earliest match (seed proxy)
-  isWinner: boolean;             // Grand Finals winner, pinned to rank 1
-};
-```
-
-Standings are pre-sorted: Grand Finals winner first, then by wins desc, bracket (upper before lower), then seed. For a podium use `top_3`; `top_3[i].rank` gives the place (1/2/3).
-
-**Credits** (`/custom/credits`) - tournament staff. Fetch `GET /api/tournaments/{id}/players` and filter `role !== "player"`.
-
-Both endpoints are same-origin GETs - no Bearer key needed from inside the overlay iframe; the built-in templates (Results / Credits in the overlay editor) use exactly this pattern, so clone one as a starting point.
 
 ## Type Reference
 

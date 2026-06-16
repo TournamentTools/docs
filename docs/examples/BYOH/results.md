@@ -7,11 +7,7 @@ sidebar_label: results.html
 Tournament top-3 podium. The Grand Finals winner is always rank 1 (pinned by the API) and is shown crowned + raised in the center; 2nd sits left, 3rd right.
 
 :::note
-Final standings are not in the bridge payload. This example fetches them from the tournament results API on each `COMPSABER_STATE` message:
-```
-/api/tournaments/{tournamentId}/results
-```
-The endpoint returns `{ standings, top_3 }`. This example renders `top_3`. See [Custom Overlay Bridge → Results & Credits screens](../../external/custom-overlay-bridge#results--credits-screens) for the full response shape.
+Standings come from the bridge payload as `payload.results` (`{ standings, top_3 }`), so no fetch is needed and it works for private tournaments. This example renders `top_3`. See [Custom Overlay Bridge → results](../../external/custom-overlay-bridge#results) for the full shape.
 :::
 
 ```html
@@ -112,18 +108,11 @@ The endpoint returns `{ standings, top_3 }`. This example renders `top_3`. See [
       root.innerHTML = html;
     }
 
-    function fetchResults(tournamentId) {
-      fetch('/api/tournaments/' + tournamentId + '/results')
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) { if (data) render(data.top_3 || []); })
-        .catch(function() {
-          document.getElementById('root').innerHTML = '<div class="waiting">Could not load standings</div>';
-        });
-    }
-
+    // Standings arrive in the bridge payload (payload.results) - no fetch needed.
     window.addEventListener('message', function(e) {
       if (e.data?.type !== 'COMPSABER_STATE') return;
-      fetchResults(e.data.payload.tournamentId);
+      var results = e.data.payload.results;
+      render(results ? results.top_3 : []);
     });
   </script>
 </body>

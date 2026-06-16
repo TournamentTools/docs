@@ -26,6 +26,9 @@ interface OverlayBridgePayload {
     bracketView: "upper" | "lower" | null;
     countdownTarget: number | null;
     streamReload: [number, number];
+    bracket: FullBracket | null;                 // bracket screen
+    results: BridgeResults | null;               // results screen
+    staff: BridgeStaffMember[] | null;           // credits screen
   };
 }
 ```
@@ -157,6 +160,48 @@ interface BridgeAudio {
   player1Muted: boolean;
 }
 ```
+
+## BridgeResults
+
+Results screen payload. `top_3` is the podium (`standings.slice(0, 3)`). The Grand Finals winner is pinned to rank 1.
+
+```ts
+interface BridgeResults {
+  standings: BridgeResultsPlayer[];
+  top_3: BridgeResultsPlayer[];
+}
+
+interface BridgeResultsPlayer {
+  rank: number;
+  userId: string;
+  username: string | null;
+  avatarUrl: string | null;
+  country: string | null;          // ISO code, e.g. "US"
+  wins: number;
+  bracket: "upper" | "lower" | null;
+  matchNumber: number | null;
+  isWinner: boolean;               // Grand Finals winner
+}
+```
+
+## BridgeStaffMember
+
+Credits screen payload entry (same shape as the players API). Filter `role !== "player"` for the credits roll.
+
+```ts
+interface BridgeStaffMember {
+  user_id: string;
+  role: string;                    // "host" | "tournament_admin" | "caster" | ... | "player"
+  username: string | null;
+  user: {
+    username: string | null;
+    avatar_url: string | null;
+    scoresaber_data: { country?: string | null } | null;
+  } | null;
+}
+```
+
+`bracket` is `FullBracket` (`upperBracket` / `lowerBracket` rounds) - see the bracket screen example.
 
 ## CustomHud
 

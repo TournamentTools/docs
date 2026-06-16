@@ -187,6 +187,25 @@ Reference for all available CSS classes on CompSaber overlay screens. Use these 
 | `.credits-member-name` | Member name |
 | `.credits-member-flag` | Member country flag |
 
+## Results Screen
+
+Top-3 podium. The Grand Finals winner is centered, raised, and crowned; 2nd sits left, 3rd right.
+
+| Selector | Element |
+|---|---|
+| `.results-outer-div` | Outer container |
+| `.results-inner-div` | Inner container |
+| `.results-podium` | Podium row |
+| `.results-place` | Place column (one per podium spot) |
+| `.results-avatar-div` | Avatar wrapper |
+| `.results-avatar-img` | Avatar image |
+| `.results-name` | Name row |
+| `.results-flag` | Country flag |
+| `.results-username` | Username |
+| `.results-pedestal` | Pedestal |
+| `.results-rank` | Rank number |
+| `.results-wins` | Wins count |
+
 ## Player Streams
 
 Used in the Play Screen.

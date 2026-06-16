@@ -4,14 +4,10 @@ title: Bracket Screen
 sidebar_label: bracket.html
 ---
 
-Bracket display that fetches bracket data from the public API and switches between upper/lower based on `bracketView` from the bridge payload.
+Bracket display. Both the full bracket and the active `bracketView` come from the bridge payload, switching between upper/lower automatically.
 
 :::note
-Full bracket data is not in the bridge payload. This example fetches it from the public API:
-```
-/api/tournaments/{tournamentId}/bracket
-```
-For privated tournaments, this fetch will fail.
+The full bracket arrives in the payload as `payload.bracket` (`upperBracket` / `lowerBracket` rounds), and `payload.bracketView` (`"upper" | "lower" | null`) tells you which half to show. No fetch needed - it works for private tournaments and re-renders live as matches complete.
 :::
 
 ```html
@@ -41,7 +37,7 @@ For privated tournaments, this fetch will fail.
   <div id="root"><div class="waiting">Loading bracket...</div></div>
 
   <script>
-    var state = { bracketView: null, tournamentId: null, bracket: null };
+    var state = { bracketView: null, bracket: null };
 
     function buildBracket(rounds, view) {
       if (!rounds || rounds.length === 0) return '<div class="waiting">No bracket data</div>';
@@ -69,7 +65,7 @@ For privated tournaments, this fetch will fail.
       var titleHtml = '<div class="bracket-title">' + (view === 'lower' ? 'Losers Bracket' : 'Winners Bracket') + '</div>';
 
       if (!state.bracket) {
-        root.innerHTML = titleHtml + '<div class="waiting">Fetching bracket...</div>';
+        root.innerHTML = titleHtml + '<div class="waiting">Waiting for bracket...</div>';
         return;
       }
 
@@ -77,26 +73,13 @@ For privated tournaments, this fetch will fail.
       root.innerHTML = titleHtml + buildBracket(rounds, view);
     }
 
-    function fetchBracket(tournamentId) {
-      fetch('/api/tournaments/' + tournamentId + '/bracket')
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) { if (data) { state.bracket = data; render(); } })
-        .catch(function() {});
-    }
-
+    // Bracket + bracketView both come from the payload - no fetch needed.
     window.addEventListener('message', function(e) {
       if (e.data?.type !== 'COMPSABER_STATE') return;
       var payload = e.data.payload;
-      var newView = payload.bracketView || 'upper';
-      var viewChanged = newView !== state.bracketView;
-      state.bracketView = newView;
-
-      if (!state.tournamentId) {
-        state.tournamentId = payload.tournamentId;
-        fetchBracket(payload.tournamentId);
-      }
-
-      if (viewChanged) render();
+      state.bracketView = payload.bracketView || 'upper';
+      state.bracket = payload.bracket;
+      render();
     });
   </script>
 </body>
